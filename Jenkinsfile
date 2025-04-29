@@ -2,73 +2,68 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
-        APP_DIR = 'app'
+        DOCKER_IMAGE = 'neerajbolla/dockerized-flask-app-flask'
+        DOCKER_CREDENTIALS_ID = '20c10886-b1b4-4b23-b63d-6897cef7fd67' 
     }
 
     stages {
-        stage('Clean Workspace') {
-            steps {
-                echo "🧹 Cleaning up previous build files..."
-                cleanWs()
-            }
-        }
-
         stage('Clone Repository') {
             steps {
-                echo "📥 Cloning GitHub repository..."
-                git url: 'https://github.com/neeraj0654/docker-flask-app.git', branch: 'main'
+                echo "📥 Cloning your Flask repo..."
+                git branch: 'main', url: 'https://github.com/neeraj0654/docker-flask-app.git'
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Build Docker Image') {
             steps {
-                echo "📦 Installing Python packages inside container..."
-                sh '''
-                docker run --rm -v $(pwd)/${APP_DIR}:/app python:3.11-slim bash -c "
-                  cd /app &&
-                  pip install -r requirements.txt
-                "
-                '''
-            }
-        }
-
-        stage('Build Docker Images') {
-            steps {
-                echo "🔨 Building Docker images..."
-                sh "docker-compose -f ${DOCKER_COMPOSE_FILE} build"
-            }
-        }
-
-        stage('Run Containers') {
-            steps {
-                echo "🚀 Running containers with Docker Compose..."
-                sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d"
-                sh "sleep 5" // Give Flask time to boot
-            }
-        }
-
-        stage('Test Health') {
-            steps {
-                echo "🔍 Testing if Flask app is running correctly..."
+                echo "🔨 Building Docker image..."
                 script {
-                    def response = sh(script: "curl -s http://localhost:5000 || true", returnStdout: true).trim()
-                    if (!response.contains("Live System Updates")) {
-                        error("❌ Flask app did not respond as expected.")
-                    } else {
-                        echo "✅ Flask app is live and responding!"
-                    }
+                    docker.build(DOCKER_IMAGE, '.')
+                }
+            }
+        }
+
+        stage('Login to DockerHub') {
+            steps {
+                echo "🔐 Logging in to Docker Hub..."
+                withCredentials([usernamePassword(credentialsId: 20c10886-b1b4-4b23-b63d-6897cef7fd67, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    sh "echo \$PASSWORD | docker login -u \$USERNAME --password-stdin"
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                echo "📤 Pushing image to Docker Hub..."
+                script {
+                    docker.image(DOCKER_IMAGE).push("latest")
+                }
+            }
+        }
+
+        stage('Deploy Container') {
+            steps {
+                echo "🚀 Deploying container from pushed image..."
+                script {
+                    sh '''
+                        docker ps -q --filter "name=flask-app" | grep . && docker stop flask-app || echo "No running container"
+                        docker ps -a -q --filter "name=flask-app" | grep . && docker rm flask-app || echo "No container to remove"
+                        docker run -d --name flask-app -p 5000:5000 neerajbolla/dockerized-flask-app-flask:latest
+                    '''
                 }
             }
         }
     }
 
     post {
+        always {
+            echo '🧹 Cleaning up...'
+        }
         success {
-            echo '🎉 Pipeline executed successfully!'
+            echo '✅ Flask app deployed successfully from Docker Hub!'
         }
         failure {
-            echo '❌ Pipeline failed. Check the build logs for details.'
+            echo '❌ Deployment failed. Check console output for errors.'
         }
     }
 }
