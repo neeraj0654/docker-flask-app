@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'neerajbolla/dockerized-flask-app-flask'
-        DOCKER_CREDENTIALS_ID = 'docker hub credentials' 
+        DOCKER_CREDENTIALS_ID = 'docker hub credentials'
+        GIT_SSL_NO_VERIFY = 'true'  // This line disables SSL verification for Git operations
     }
 
     stages {
