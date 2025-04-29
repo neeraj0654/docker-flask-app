@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'neerajbolla/dockerized-flask-app-flask'
-        DOCKER_CREDENTIALS_ID = '20c10886-b1b4-4b23-b63d-6897cef7fd67' 
+        DOCKER_CREDENTIALS_ID = 'docker hub credentials' 
     }
 
     stages {
@@ -26,7 +26,7 @@ pipeline {
         stage('Login to DockerHub') {
             steps {
                 echo "🔐 Logging in to Docker Hub..."
-                withCredentials([usernamePassword(credentialsId: 20c10886-b1b4-4b23-b63d-6897cef7fd67, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                withCredentials([usernamePassword(credentialsId: docker hub credentials, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     sh "echo \$PASSWORD | docker login -u \$USERNAME --password-stdin"
                 }
             }
