@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        GIT_SSL_NO_VERIFY = 'true'
         DOCKER_COMPOSE_FILE = 'docker-compose.yml'
     }
 
