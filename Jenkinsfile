@@ -3,28 +3,29 @@ pipeline {
 
     environment {
         DOCKER_COMPOSE_FILE = 'docker-compose.yml'
+        APP_DIR = 'app'
     }
 
     stages {
         stage('Clean Workspace') {
             steps {
-                echo "Cleaning up previous build files..."
+                echo "🧹 Cleaning up previous build files..."
                 cleanWs()
             }
         }
 
-        stage('Checkout Code') {
+        stage('Clone Repository') {
             steps {
-                echo "Checking out code from Git..."
-                checkout scm
+                echo "📥 Cloning GitHub repository..."
+                git url: 'https://github.com/neeraj0654/docker-flask-app.git', branch: 'main'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                echo "Installing required Python packages (inside container)..."
+                echo "📦 Installing Python packages inside container..."
                 sh '''
-                docker run --rm -v $(pwd)/app:/app python:3.11-slim bash -c "
+                docker run --rm -v $(pwd)/${APP_DIR}:/app python:3.11-slim bash -c "
                   cd /app &&
                   pip install -r requirements.txt
                 "
@@ -34,27 +35,28 @@ pipeline {
 
         stage('Build Docker Images') {
             steps {
-                echo "Building Docker containers..."
-                sh 'docker-compose build'
+                echo "🔨 Building Docker images..."
+                sh "docker-compose -f ${DOCKER_COMPOSE_FILE} build"
             }
         }
 
         stage('Run Containers') {
             steps {
-                echo "Starting services using Docker Compose..."
-                sh 'docker-compose up -d'
+                echo "🚀 Running containers with Docker Compose..."
+                sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d"
+                sh "sleep 5" // Give Flask time to boot
             }
         }
 
         stage('Test Health') {
             steps {
-                echo "Testing if Flask app is running..."
+                echo "🔍 Testing if Flask app is running correctly..."
                 script {
                     def response = sh(script: "curl -s http://localhost:5000 || true", returnStdout: true).trim()
                     if (!response.contains("Live System Updates")) {
-                        error("Flask app did not respond properly!")
+                        error("❌ Flask app did not respond as expected.")
                     } else {
-                        echo "✅ Flask server is up and serving correctly!"
+                        echo "✅ Flask app is live and responding!"
                     }
                 }
             }
@@ -63,10 +65,10 @@ pipeline {
 
     post {
         success {
-            echo '🎉 Deployment pipeline completed successfully!'
+            echo '🎉 Pipeline executed successfully!'
         }
         failure {
-            echo '❌ Something went wrong during pipeline execution.'
+            echo '❌ Pipeline failed. Check the build logs for details.'
         }
     }
 }
