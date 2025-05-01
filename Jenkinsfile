@@ -25,16 +25,20 @@ pipeline {
             }
         }
 
-        stage('Login to Docker') {
-            steps {
-                script {
-                    // Log into Docker registry using credentials (replace with your actual credentialsId)
-                    withDockerRegistry(credentialsId: 'docker-hub-credentials') {
-                        echo 'Logged in to Docker registry.'
-                    }
-                }
+  stage('Login to Docker') {
+    steps {
+        script {
+            // Log into Docker registry using credentials
+            withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                sh '''
+                    echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                    echo 'Logged in to Docker registry.'
+                '''
             }
         }
+    }
+}
+
 
         stage('Push Docker Image') {
             steps {
