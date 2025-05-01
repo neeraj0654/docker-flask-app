@@ -5,6 +5,7 @@ pipeline {
         DOCKER_IMAGE_NAME = 'dockerized-flask-app-flask'
         REPO_URL = 'https://github.com/neeraj0654/docker-flask-app.git'
         BRANCH_NAME = 'main' // Set your branch name here
+        PATH = "/usr/local/bin:$PATH" // Ensure Docker is found
     }
 
     stages {
@@ -18,8 +19,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image
-                    docker.build("${DOCKER_IMAGE_NAME}")
+                    // Use full path to ensure docker command is found
+                    sh '/usr/local/bin/docker build -t ${DOCKER_IMAGE_NAME} .'
                 }
             }
         }
@@ -39,7 +40,7 @@ pipeline {
             steps {
                 script {
                     // Push the Docker image to the registry
-                    docker.image("${DOCKER_IMAGE_NAME}").push()
+                    sh '/usr/local/bin/docker push ${DOCKER_IMAGE_NAME}'
                 }
             }
         }
@@ -48,7 +49,7 @@ pipeline {
             steps {
                 script {
                     // Deploy the container on the desired host
-                    docker.image("${DOCKER_IMAGE_NAME}").run('-d -p 5000:5000')
+                    sh '/usr/local/bin/docker run -d -p 5000:5000 ${DOCKER_IMAGE_NAME}'
                 }
             }
         }
