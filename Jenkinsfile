@@ -28,7 +28,7 @@ pipeline {
             steps {
                 script {
                     // Log into Docker registry using credentials (replace with your actual credentialsId)
-                    withDockerRegistry([credentialsId: 'docker-hub-credentials', url: 'https://index.docker.io/v1/']) {
+                    withDockerRegistry(credentialsId: 'docker-hub-credentials') {
                         echo 'Logged in to Docker registry.'
                     }
                 }
