@@ -1,12 +1,14 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE_NAME = 'dockerized-flask-app-flask'
-        REPO_URL = 'https://github.com/neeraj0654/docker-flask-app.git'
-        BRANCH_NAME = 'main' // Set your branch name here
-        PATH = "/usr/local/bin:$PATH" // Ensure Docker is found
-    }
+   environment {
+    DOCKER_USERNAME = 'neerajbolla'
+    DOCKER_IMAGE_NAME = "${DOCKER_USERNAME}/dockerized-flask-app-flask"
+    REPO_URL = 'https://github.com/neeraj0654/docker-flask-app.git'
+    BRANCH_NAME = 'main' // Set your branch name here
+    PATH = "/usr/local/bin:$PATH" // Ensure Docker is found
+}
+
 
     stages {
         stage('Checkout SCM') {
