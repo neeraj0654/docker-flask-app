@@ -49,7 +49,7 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 script {
-                    sh '/usr/local/bin/docker run -d -p 5003:5000 ${DOCKER_IMAGE_NAME}'
+                    sh '/usr/local/bin/docker run -d -p 5004:5000 ${DOCKER_IMAGE_NAME}'
                 }
             }
         }
