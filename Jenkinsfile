@@ -55,7 +55,7 @@ pipeline {
             steps {
                 script {
                     // Deploy the container on the desired host
-                    sh '/usr/local/bin/docker run -d -p 5001:5000 ${DOCKER_IMAGE_NAME}'
+                    sh '/usr/local/bin/docker run -d -p 5002:5000 ${DOCKER_IMAGE_NAME}'
                 }
             }
         }
